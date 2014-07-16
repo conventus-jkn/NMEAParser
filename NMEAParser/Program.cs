@@ -12,15 +12,16 @@ public class Parse
     static SerialPort _serialPort;
     
 
-    //static Vessel pinniped = SignalK.vessel("235078477");
-   static Vessel pinniped = new Vessel(); 
+    static Vessel pinniped = SignalK.vessel("235078477");
+   //static Vessel pinniped = new Vessel(); 
 
     public static void Main()
     {
  //       string name;
         string message;
         StringComparer stringComparer = StringComparer.OrdinalIgnoreCase;
-        Thread readThread = new Thread(Read);
+//        Thread readThread = new Thread(ReadSerial);
+        Thread readThread = new Thread(ReadFile);
 
         // Create a new SerialPort object with default settings.
         _serialPort = new SerialPort();
@@ -42,7 +43,7 @@ public class Parse
         _serialPort.WriteTimeout = 500;
         try
         {
-            _serialPort.Open();
+ //           _serialPort.Open();
             _continue = true;
             readThread.Start();
 
@@ -71,8 +72,53 @@ public class Parse
         }
         catch (System.IO.IOException) { Console.WriteLine("Com port does not exist or in use"); }
     }
+    
+    public static void ReadFile()
+    {
+        string nmealogname = "NMEALog_20140708.txt";
+        TimeSpan logtimedelta = new TimeSpan(0);
 
-    public static void Read()
+        using (StreamReader nmealog = new StreamReader(nmealogname))
+        {
+            while (_continue)
+            {
+                try
+                {
+                    string logmessage = nmealog.ReadLine();
+                    if (logmessage!=null)
+                    {
+                        string[] message = logmessage.Split(';');
+
+                        if (message.Length > 1)
+                        {
+
+                            DateTime logtime = DateTime.Parse(message[0].Substring(0, message[0].Length - 7));
+                            logtime = logtime.AddMilliseconds(int.Parse(message[0].Substring(message[0].Length - 6, 3)));
+                            if (logtimedelta == new TimeSpan(0)) logtimedelta = DateTime.UtcNow - logtime;
+                            TimeSpan wait = (logtime + logtimedelta - DateTime.UtcNow);
+                            double dwait = wait.TotalMilliseconds;
+                            if (dwait > 0)
+                            {
+                                System.Threading.Thread.Sleep((int)dwait);
+                            }
+                            if (message[1].Length > 7)
+                            {
+                                NMEA0183.parseNmea0183(message[1], pinniped,logtime);
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _continue=false;
+                    }
+                }
+                catch (TimeoutException) { }
+            }
+
+        }
+    }
+    public static void ReadSerial()
     {
         string nmealogname = string.Format("NMEALog_{0}{1:d2}{2:d2}.txt",DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day);
         using(StreamWriter nmealog = File.AppendText(nmealogname))
@@ -84,7 +130,7 @@ public class Parse
                     string message = _serialPort.ReadLine();
                     if (message.Length > 7)
                     {
-                        NMEA0183.parseNmea0183(message,pinniped);
+                        NMEA0183.parseNmea0183(message,pinniped,DateTime.UtcNow);
                         string logmessage= string.Format("{0}:{1:d3}UTC;{2}", DateTime.UtcNow,DateTime.UtcNow.Millisecond, message);
                         nmealog.WriteLine(logmessage);
                     }

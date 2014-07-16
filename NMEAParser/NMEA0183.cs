@@ -12,7 +12,7 @@ namespace NMEAParser
 
     class NMEA0183
     {
-        internal static void parseNmea0183(string message, Vessel pinniped)
+        internal static void parseNmea0183(string message, Vessel pinniped, DateTime messagetime)
         {
             if (parseNmea0183CheckSum(message))
             { 
@@ -37,12 +37,12 @@ namespace NMEAParser
                         Console.SetCursorPosition(0, 0);
                         DateTime fixtime;
                         
-                        parseNmea0183RMC(message, pinniped,out fixtime);
+                        parseNmea0183RMC(message, pinniped,messagetime,out fixtime);
 
                         Console.WriteLine("Location: {0:f4} {1:f4}, SOG: {2:f1} m/s, COG: {3:f0}°", pinniped.curLat, pinniped.curLong, pinniped.SOG, pinniped.COG);
                         Console.WriteLine("Distance from Original Loc ({0:f4} {1:f4}) {2:f0}m", pinniped.OrgLat, pinniped.OrgLong, pinniped.CurtoOrgDistance);
                         Console.SetCursorPosition(0, 12);
-                        Console.WriteLine("FixTime: {0}, internal clock delta:{1}", fixtime, fixtime - DateTime.UtcNow);
+                        Console.WriteLine("FixTime: {0}, internal clock delta:{1}", fixtime, fixtime - messagetime);
 
                         //                if (pinniped.CurtoOrgDistance > 10) Console.Write("\a");
                         break;
@@ -125,7 +125,7 @@ namespace NMEAParser
 
         }
 
-        private static void parseNmea0183RMC(string message, NMEAParser.Vessel ves, out DateTime fixtime)
+        private static void parseNmea0183RMC(string message, NMEAParser.Vessel ves,DateTime messagetime, out DateTime fixtime)
         /* NMEA0183 Sentence: GP RMC (Recomended Minimum Specific GNSS Data)
          * Number of fields =13
          * Field 0: Talker + NMEA Sentence
@@ -156,7 +156,7 @@ namespace NMEAParser
                     //set fix time to time reurned by gps
                     if ((nmeaparam[1].Length > 0) && (nmeaparam[9].Length > 0))
                         fixtime = new DateTime(2000 + int.Parse(nmeaparam[9].Substring(4, 2)), int.Parse(nmeaparam[9].Substring(2, 2)), int.Parse(nmeaparam[9].Substring(0, 2)), int.Parse(nmeaparam[1].Substring(0, 2)), int.Parse(nmeaparam[1].Substring(2, 2)), int.Parse(nmeaparam[1].Substring(4, 2)));
-                    TimeSpan fixtimedelta = fixtime - DateTime.UtcNow;
+                    TimeSpan fixtimedelta = fixtime - messagetime;
                     if ((fixtimedelta > TimeSpan.FromSeconds(-120)) && (fixtimedelta < TimeSpan.FromSeconds(120)))
                     {
                         double lat = 0, longd = 0;
@@ -413,6 +413,7 @@ namespace NMEAParser
         }
         private static bool parseNmea0183CheckSum(string message)
         {
+            message = message.Trim();
             string[] nmeaparam = message.Split('*');
             if (nmeaparam.Length==2)
             {
@@ -422,9 +423,9 @@ namespace NMEAParser
                 {
                     chsum ^= element;
                 }
-//                Console.SetCursorPosition(0, 18);
-//                Console.WriteLine("Provided Checksum: {0}, Calculated {1:x}", nmeaparam[1].Substring(0,nmeaparam[1].Length-1), chsum);
-                if (Convert.ToInt32(nmeaparam[1].Substring(0, nmeaparam[1].Length - 1), 16) == chsum) return true;
+                //Console.SetCursorPosition(0, 18);
+                //Console.WriteLine("Provided Checksum: {0}, Calculated {1:x}",Convert.ToInt32(nmeaparam[1],16), chsum);
+                if (Convert.ToInt32(nmeaparam[1], 16) == chsum) return true;
                 else return false;
             }
             else

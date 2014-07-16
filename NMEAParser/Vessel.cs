@@ -19,7 +19,7 @@ namespace NMEAParser
         //source of date;
         static private string sksource="self";
 
-        static private IDictionary<string, Vessel> skvessel;
+        static private IDictionary<string, Vessel> skvessel = new Dictionary<string,Vessel>();
 
         static internal string self { get { return skself; } }
         static internal DateTime timestamp { get { return sktimestamp; } }
