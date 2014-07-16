@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NMEAParser.Vessel">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAIEAQQAAAAAAAgCAIIDCAAAAAAAQAAAAEBA=</HashCode>
+      <FileName>Vessel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Parse">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAKIAgCAAIEAAgAACABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NMEAParser.NMEA0183">
+    <Position X="5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAAAAACAABAAgAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>NMEA0183.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
